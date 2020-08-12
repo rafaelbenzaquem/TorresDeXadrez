@@ -8,17 +8,30 @@ package com.rafaelbenz.torresdexadrez;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
- *
  * @author Rafael Benzaquem Neto
  */
+
+class Node {
+    int linha;
+    int coluna;
+
+    public Node(int linha, int coluna) {
+        this.linha = linha;
+        this.coluna = coluna;
+    }
+}
+
+
 public class Main3 {
 
     public static void main(String args[]) throws IOException {
-
-        boolean res[][];
+        long ti = 0;
+        List<Node> res;
         boolean colunasUsadas[];
         boolean linhasUsadas[];
         int no;
@@ -28,9 +41,13 @@ public class Main3 {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         do {
             try {
+
                 N = Integer.parseInt(br.readLine());
+                if (ti == 0)
+                    ti = System.currentTimeMillis();
                 no = 0;
-                res = new boolean[N * N + N][N * N + N];
+                res = new ArrayList<>();
+
                 colunasUsadas = new boolean[N];
                 linhasUsadas = new boolean[N];
 
@@ -44,7 +61,6 @@ public class Main3 {
                 for (int i = 0; i < N; i++) {
                     String entrada = br.readLine();
                     for (int j = 0; j < N; j++) {
-
                         if (entrada.charAt(j) == 'X') {
                             if (linhasUsadas[i]) {
                                 linhas[i] = no++;
@@ -55,19 +71,21 @@ public class Main3 {
                         } else {
                             linhasUsadas[i] = true;
                             colunasUsadas[j] = true;
-                            res[linhas[i]][colunas[j]] = true;
-
+                            res.add(new Node(linhas[i], colunas[j]));
                         }
-
                     }
                 }
 
-                System.out.println(maxMatching(res));
+
+                boolean grafoBp[][] = new boolean[no][no];
+                res.forEach(g -> grafoBp[g.linha][g.coluna] = true);
+                System.out.println(maxMatching(grafoBp));
+
 
             } catch (NumberFormatException ex) {
 
             } finally {
-                //tira referência da meméria e limpa com System.gc()
+                //tira referência da memória e limpa com System.gc()
                 res = null;
                 colunasUsadas = null;
                 linhasUsadas = null;
@@ -77,6 +95,7 @@ public class Main3 {
                 System.gc();
             }
         } while (br.ready());
+        System.out.printf("%.4f", ((double) System.currentTimeMillis() - ti) / 1000.00);
 
     }
 

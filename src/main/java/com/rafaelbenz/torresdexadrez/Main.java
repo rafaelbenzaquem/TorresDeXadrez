@@ -1,20 +1,15 @@
 package com.rafaelbenz.torresdexadrez;
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.Objects;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
- *
  * @author Rafael Benzaquem Neto
- *
  */
 public class Main {
 
@@ -33,14 +28,14 @@ public class Main {
      * DFS( aqui é possível usar o algoritmo de busca em largura BFS, todos com
      * complexidade linear)
      *
-     * @param grafoBp Matriz de adjacência de uma grafo bipartido
-     * @param u vertice no qual será verificada, se é possivel um emparelhamento
-     * @param visitados lista de vértices visitados do grafo bipartido
+     * @param grafoBp      Matriz de adjacência de uma grafo bipartido
+     * @param u            vertice no qual será verificada, se é possivel um emparelhamento
+     * @param visitados    lista de vértices visitados do grafo bipartido
      * @param emparelhados
      * @return retorna true se for possível o emparelhamento do vértice 'u'
      */
     private boolean buscaEmparelhar(boolean grafoBp[][], int u,
-            boolean visitados[], int emparelhados[]) {
+                                    boolean visitados[], int emparelhados[]) {
         //itera por todos os vértices do conjunto N do grafo bipartido
         for (int v = 0; v < N; v++) {
 
@@ -103,32 +98,81 @@ public class Main {
         return result;
     }
 
-    public static int totalDeTorres(char tabuleiro[][], int n) {
+    private static class Node implements Comparable<Node> {
+        Integer linha;
+        Integer coluna;
 
-        int[][] linhas = new int[n][n];
-        int[][] colunas = new int[n][n];
+        public Node(Integer linha, Integer coluna) {
+            this.linha = linha;
+            this.coluna = coluna;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Node node = (Node) o;
+            return Objects.equals(linha, node.linha) &&
+                    Objects.equals(coluna, node.coluna);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(linha, coluna);
+        }
+
+        @Override
+        public int compareTo(Node o) {
+            if (this.equals(o))
+                return 0;
+            if (this.linha > o.linha)
+                return 1;
+            else if (this.linha < o.linha)
+                return -1;
+            else if (Objects.equals(this.linha, o.linha))
+                if (this.coluna > o.coluna)
+                    return 1;
+                else if (this.coluna < o.coluna)
+                    return -1;
+            return 0;
+        }
+    }
+
+    
+
+    public static int totalDeTorres(char tabuleiro[][], int n) {
 
         int countColunas = 0, countLinhas = 0, totalLinhas = 0, totalColunas = 0;
 
+        Map<Node, Node> nodes = new TreeMap<>();
+
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
+
                 if (tabuleiro[i][j] != 'X') {
-                    linhas[i][j] = i + countLinhas;
+                    int linha = i + countLinhas;
+                    Node key = new Node(i, j);
+                    if (nodes.containsKey(key)) {
+                        nodes.get(key).linha = linha;
+                    } else {
+                        nodes.put(key, new Node(linha, null));
+                    }
                     totalLinhas = i + countLinhas + 1;
-                } else {
-                    linhas[i][j] = -1;
                 }
                 if (j > 0 && j < n - 1) {
                     if (tabuleiro[i][j] == 'X' && tabuleiro[i][j - 1] != 'X') {
                         countLinhas++;
                     }
                 }
-
                 if (tabuleiro[j][i] != 'X') {
-                    colunas[j][i] = i + countColunas;
+                    int coluna = i + countColunas;
+                    Node key = new Node(j, i);
+                    if (nodes.containsKey(key)) {
+                        nodes.get(key).coluna = coluna;
+                    } else {
+                        nodes.put(key, new Node(null, coluna));
+                    }
                     totalColunas = i + countColunas + 1;
-                } else {
-                    colunas[j][i] = -1;
                 }
                 if (j > 0 && j < n - 1) {
                     if (tabuleiro[j][i] == 'X' && tabuleiro[j - 1][i] != 'X') {
@@ -138,31 +182,23 @@ public class Main {
             }
         }
         boolean grafoBp[][] = new boolean[totalLinhas][totalColunas];
-        for (int i = 0; i < linhas.length; i++) {
-            for (int j = 0; j < linhas[0].length; j++) {
-                if (linhas[i][j] != -1) {
-                    grafoBp[linhas[i][j]][colunas[i][j]] = true;
-                }
-            }
-        }
-
+        nodes.values().forEach(node -> grafoBp[node.linha][node.coluna] = true);
         Main m = new Main(totalColunas, totalLinhas);
-
         return m.emparelhamentoMaximo(grafoBp);
 
     }
 
     public static void main(String[] args) throws IOException {
+        long ti = 0;
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         do {
             try {
                 int n = Integer.parseInt(br.readLine());
+                if (ti == 0)
+                    ti = System.currentTimeMillis();
                 char tabuleiro[][] = new char[n][n];
                 for (int i = 0; i < n; i++) {
-                    String linha = br.readLine();
-                    for (int j = 0; j < n; j++) {
-                        tabuleiro[i][j] = linha.charAt(j);
-                    }
+                    tabuleiro[i] = br.readLine().toCharArray();
                 }
                 System.out.println(totalDeTorres(tabuleiro, n));
             } catch (NumberFormatException ex) {
@@ -170,6 +206,7 @@ public class Main {
             }
         } while (br.ready());
 
-        
+        System.out.printf("%.4f", ((double) (System.currentTimeMillis() - ti)) / 1000.00);
+
     }
 }

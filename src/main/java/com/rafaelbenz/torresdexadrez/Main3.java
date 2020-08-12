@@ -15,85 +15,77 @@ import java.util.List;
 /**
  * @author Rafael Benzaquem Neto
  */
-
 class Node {
+
     int linha;
     int coluna;
+    boolean linhaUsada;
+    boolean colunaUsada;
 
     public Node(int linha, int coluna) {
         this.linha = linha;
         this.coluna = coluna;
     }
-}
 
+    @Override
+    public String toString() {
+        return "Node{" + "linha=" + linha + ", coluna=" + coluna + ", linhaUsada=" + linhaUsada + ", colunaUsada=" + colunaUsada + '}';
+    }
+
+}
 
 public class Main3 {
 
     public static void main(String args[]) throws IOException {
         long ti = 0;
-        List<Node> res;
-        boolean colunasUsadas[];
-        boolean linhasUsadas[];
-        int no;
-        int N;
-        int linhas[];
-        int colunas[];
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         do {
             try {
 
-                N = Integer.parseInt(br.readLine());
-                if (ti == 0)
+                int N = Integer.parseInt(br.readLine());
+                if (ti == 0) {
                     ti = System.currentTimeMillis();
-                no = 0;
-                res = new ArrayList<>();
+                }
+                int no = 0;
+                List<Node> res = new ArrayList<>();
 
-                colunasUsadas = new boolean[N];
-                linhasUsadas = new boolean[N];
+                List<Node> nodes = new ArrayList<>();
 
-                linhas = new int[N];
-                colunas = new int[N];
                 for (int i = 0; i < N; i++) {
-                    linhas[i] = no++;
-                    colunas[i] = no++;
+                    nodes.add(new Node(no++, no++));
                 }
 
                 for (int i = 0; i < N; i++) {
                     String entrada = br.readLine();
                     for (int j = 0; j < N; j++) {
                         if (entrada.charAt(j) == 'X') {
-                            if (linhasUsadas[i]) {
-                                linhas[i] = no++;
+                            Node linha = nodes.get(i);
+                            Node coluna = nodes.get(j);
+                            if (linha.linhaUsada) {
+                                linha.linha = no++;
                             }
-                            if (colunasUsadas[j]) {
-                                colunas[j] = no++;
+                            if (coluna.colunaUsada) {
+                                coluna.coluna = no++;
                             }
                         } else {
-                            linhasUsadas[i] = true;
-                            colunasUsadas[j] = true;
-                            res.add(new Node(linhas[i], colunas[j]));
+                            Node linha = nodes.get(i);
+                            linha.linhaUsada = true;
+                            Node coluna = nodes.get(j);
+                            coluna.colunaUsada = true;
+                            res.add(new Node(linha.linha, coluna.coluna));
                         }
                     }
                 }
 
-
                 boolean grafoBp[][] = new boolean[no][no];
                 res.forEach(g -> grafoBp[g.linha][g.coluna] = true);
                 System.out.println(maxMatching(grafoBp));
-
-
+                res = null;
+                nodes = null;
             } catch (NumberFormatException ex) {
 
-            } finally {
-                //tira referência da memória e limpa com System.gc()
-                res = null;
-                colunasUsadas = null;
-                linhasUsadas = null;
-
-                linhas = null;
-                colunas = null;
-                System.gc();
             }
+
         } while (br.ready());
         System.out.printf("%.4f", ((double) System.currentTimeMillis() - ti) / 1000.00);
 
